@@ -2,3 +2,22 @@
     width: 500px;
     height: 500px;
 }
+
+.map-popup {
+    position: relative;
+    background-color: white;
+    padding: 10px;
+    border-top: solid 2px #2c292f;
+    translate: -50% calc(-100% - 25px);
+}
+
+.map-popup:after {
+    position: absolute;
+    content: "";
+    top: 100%;
+    left: 50%;
+    translate: -50%;
+    border-style: solid;
+    border-width: 20px 10px 0 10px;
+    border-color: white transparent transparent transparent;
+}

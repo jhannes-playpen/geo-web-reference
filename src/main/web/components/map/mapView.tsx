@@ -1,5 +1,12 @@
 import * as React from "react";
-import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import {
+  MutableRefObject,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
@@ -24,6 +31,10 @@ proj4.defs([
   ],
 ]);
 register(proj4);
+
+function MapPopup({ children }: { children: ReactNode }) {
+  return <div className={"map-popup"}>{children}</div>;
+}
 
 export function MapView() {
   const map = useMemo(() => new Map(), []);
@@ -150,7 +161,9 @@ export function MapView() {
       </div>
       <div className={"map"} ref={mapRef} />
       <div ref={overlayRef}>
-        {selectedPolitidistrikt && <div>HEIHEI: {selectedPolitidistrikt}</div>}
+        {selectedPolitidistrikt && (
+          <MapPopup>{selectedPolitidistrikt}</MapPopup>
+        )}
       </div>
     </main>
   );
