@@ -1,0 +1,26 @@
+{
+  "name": "geo-web-reference",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel watch --dist-dir target/generated-resources/webapp src/main/webapp/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/proj4": "^2.5.2",
+    "buffer": "^6.0.3",
+    "parcel": "^2.7.0",
+    "prettier": "^2.7.1",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "@types/react-dom": "^18.0.8",
+    "ol": "^7.1.0",
+    "proj4": "^2.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
