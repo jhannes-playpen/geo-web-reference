@@ -23,7 +23,8 @@ import {
   politidistriktLayer,
   populatedLayer,
 } from "./layers";
-import { Polygon } from "ol/geom";
+import { Point, Polygon } from "ol/geom";
+import { buffer } from "ol/extent";
 
 useGeographic();
 proj4.defs([
@@ -47,6 +48,9 @@ export function MapView() {
   );
   const [selectedPolitidistrikt, setSelectedPolitidistrikt] = useState<
     PolitidistriktFeature | undefined
+  >();
+  const [selectedCity, setSelectedCity] = useState<
+    Feature<Point & unknown> | undefined
   >();
 
   const layers = useMemo(
@@ -100,6 +104,8 @@ export function MapView() {
   const mapRef = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
   const overlayRef =
     useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
+  const cityOverlayRef =
+    useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
 
   function handleMoveEnd() {
     const viewport = {
@@ -123,6 +129,18 @@ export function MapView() {
     map.addOverlay(overlay);
     return () => map.removeOverlay(overlay);
   }, [overlay]);
+  const cityOverlay = useMemo(() => {
+    return new Overlay({
+      element: cityOverlayRef.current,
+    });
+  }, [cityOverlayRef.current]);
+  useEffect(() => {
+    if (!cityOverlay.getElement()) {
+      return () => {};
+    }
+    map.addOverlay(cityOverlay);
+    return () => map.removeOverlay(cityOverlay);
+  }, [cityOverlay]);
 
   function handlePolitidistriktClick(e: MapBrowserEvent<MouseEvent>) {
     const features = politidistriktLayer
@@ -137,17 +155,33 @@ export function MapView() {
     }
   }
 
+  function handleCityClick(e: MapBrowserEvent<MouseEvent>) {
+    const { coordinate } = e;
+    const extent = buffer([...coordinate, ...coordinate], 0.2);
+    const features = populatedLayer.getSource()!.getFeaturesInExtent(extent);
+    if (features.length > 0) {
+      setSelectedCity(features[0] as Feature<Point>);
+      cityOverlay.setPosition(e.coordinate);
+      e.stopPropagation();
+    } else {
+      setSelectedCity(undefined);
+      overlay.setPosition(undefined);
+    }
+  }
+
   useEffect(() => {
     if (!mapRef.current || !overlayRef.current) {
       return;
     }
     map.setTarget(mapRef.current);
     map.on("moveend", handleMoveEnd);
+    map.on("click", handleCityClick);
     map.on("click", handlePolitidistriktClick);
     return () => {
       map.setTarget(undefined);
       map.un("moveend", handleMoveEnd);
       map.un("click", handlePolitidistriktClick);
+      map.un("click", handleCityClick);
     };
   }, [mapRef.current, overlayRef.current]);
 
@@ -174,6 +208,11 @@ export function MapView() {
       <div ref={overlayRef}>
         {selectedPolitidistrikt && (
           <MapPopup>{selectedPolitidistrikt.getProperties().navn}</MapPopup>
+        )}
+      </div>
+      <div ref={cityOverlayRef}>
+        {selectedCity && (
+          <MapPopup>{JSON.stringify(selectedCity.getProperties())}</MapPopup>
         )}
       </div>
     </>
