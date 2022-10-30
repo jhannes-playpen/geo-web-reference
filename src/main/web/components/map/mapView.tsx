@@ -4,7 +4,7 @@ import { Map, View } from "ol";
 import { OSM, WMTS } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
-import { Projection, useGeographic } from "ol/proj";
+import { useGeographic } from "ol/proj";
 import proj4 from "proj4";
 
 import "ol/ol.css";
@@ -53,11 +53,24 @@ const geodataWmtsLayer = {
   layer: "Geocache_UTM33_WGS84_GeocacheBasis",
   matrixSet: "default028mm",
 };
+const geodataPhotoLayer = {
+  url: "https://services.geodataonline.no/arcgis/rest/services/Geocache_UTM33_WGS84/GeocacheBilder/MapServer/WMTS/1.0.0/WMTSCapabilities.xml",
+  layer: "Geocache_UTM33_WGS84_GeocacheBilder",
+  matrixSet: "default028mm",
+};
 
 export function MapView() {
-  const [followMe, setFollowMe] = useState(false);
+  const [baseLayer, setBaseLayer] = useState<Layer>(
+    () => new TileLayer({ source: new OSM() })
+  );
 
-  const [projection, setProjection] = useState<Projection | null>();
+  const layers = useMemo(() => [baseLayer], [baseLayer]);
+  const projection = useMemo(
+    () => baseLayer.getSource()?.getProjection(),
+    [baseLayer]
+  );
+
+  const [followMe, setFollowMe] = useState(false);
   const view = useMemo(() => {
     const sessionViewport = sessionStorage.getItem("viewport");
     const storageViewport = localStorage.getItem("viewport");
@@ -72,11 +85,6 @@ export function MapView() {
       : defaultViewport;
     return new View({ ...viewport, projection });
   }, [projection]);
-  const [layers, setLayers] = useState<Layer[]>(() => [
-    new TileLayer({
-      source: new OSM(),
-    }),
-  ]);
 
   useEffect(() => {
     if (!followMe) {
@@ -92,14 +100,9 @@ export function MapView() {
 
   useEffect(() => {
     (async () => {
-      const wmtsLayer = await loadWmtsLayer(geodataWmtsLayer);
+      const wmtsLayer = await loadWmtsLayer(geodataPhotoLayer);
       if (wmtsLayer.source) {
-        const tileLayer = new TileLayer({
-          source: wmtsLayer.source,
-          opacity: 1,
-        });
-        setLayers([tileLayer]);
-        setProjection(wmtsLayer.source.getProjection());
+        setBaseLayer(new TileLayer({ source: wmtsLayer.source }));
       }
     })();
   }, []);
