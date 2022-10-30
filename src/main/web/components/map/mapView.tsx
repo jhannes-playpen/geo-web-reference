@@ -76,6 +76,8 @@ export function MapView() {
     })();
   }, []);
 
+  const mapRef = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
+
   function handleMoveEnd() {
     const viewport = {
       center: view.getCenter(),
@@ -85,6 +87,15 @@ export function MapView() {
     sessionStorage.setItem("viewport", JSON.stringify(viewport));
     setFollowMe(false);
   }
+  useEffect(() => {
+    if (!mapRef.current) {
+      return;
+    }
+    const target = mapRef.current;
+    const map = new Map({ layers, target, view });
+    map.on("moveend", handleMoveEnd);
+    return () => map.setTarget(undefined);
+  }, [mapRef.current]);
 
   return (
     <main>
@@ -98,31 +109,7 @@ export function MapView() {
           />
         </label>
       </div>
-      <MapDiv view={view} layers={layers} onMoveEnd={handleMoveEnd} />
+      <div className={"map"} ref={mapRef} />
     </main>
   );
-}
-
-export function MapDiv({
-  view,
-  layers,
-  onMoveEnd,
-}: {
-  view: View;
-  layers: Layer[];
-  onMoveEnd(): void;
-}) {
-  const mapRef = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
-
-  useEffect(() => {
-    if (!mapRef.current) {
-      return;
-    }
-    const target = mapRef.current;
-    const map = new Map({ layers, target, view });
-    map.on("moveend", onMoveEnd);
-    return () => map.setTarget(undefined);
-  }, [mapRef.current]);
-
-  return <div className={"map"} ref={mapRef} />;
 }
