@@ -4,6 +4,9 @@ import { Map, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
+import { useGeographic } from "ol/proj";
+
+useGeographic();
 
 export function MapView() {
   const view = new View({
@@ -15,6 +18,15 @@ export function MapView() {
       source: new OSM(),
     }),
   ];
+
+  useEffect(() => {
+    navigator.geolocation.watchPosition((pos) => {
+      console.log(pos);
+      const { latitude, longitude } = pos.coords;
+      view.setCenter([longitude, latitude]);
+      view.setZoom(9);
+    });
+  });
 
   return (
     <main>

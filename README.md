@@ -26,6 +26,8 @@
 4. Add parcel + react + openlayers
 5. Add jetty autoloader
 6. Show openlayers map with OSM
+   1. Find user position
+   2. Remember current position in sessionStorage and localStorage
 7. Add WMTS layer from Norwegian source
 8. Import geojson layer and serve from Jetty
 9. Overlay when geojson layer clicked
