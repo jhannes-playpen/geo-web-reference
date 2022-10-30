@@ -9,8 +9,11 @@ import proj4 from "proj4";
 
 import "ol/ol.css";
 import { optionsFromCapabilities } from "ol/source/WMTS";
-import { WMTSCapabilities } from "ol/format";
+import { GeoJSON, WMTSCapabilities } from "ol/format";
 import { register } from "ol/proj/proj4";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import { Fill, Stroke, Style } from "ol/style";
 
 useGeographic();
 proj4.defs([
@@ -59,12 +62,28 @@ const geodataPhotoLayer = {
   matrixSet: "default028mm",
 };
 
+const countryLayer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_0_sovereignty.geojson",
+  }),
+  style: new Style({
+    stroke: new Stroke({
+      color: "red",
+      width: 2,
+    }),
+    fill: new Fill({
+      color: "rgba(255, 255, 255, 0)",
+    }),
+  }),
+});
+
 export function MapView() {
   const [baseLayer, setBaseLayer] = useState<Layer>(
     () => new TileLayer({ source: new OSM() })
   );
 
-  const layers = useMemo(() => [baseLayer], [baseLayer]);
+  const layers = useMemo(() => [baseLayer, countryLayer], [baseLayer]);
   const projection = useMemo(
     () => baseLayer.getSource()?.getProjection(),
     [baseLayer]
@@ -100,7 +119,7 @@ export function MapView() {
 
   useEffect(() => {
     (async () => {
-      const wmtsLayer = await loadWmtsLayer(geodataPhotoLayer);
+      const wmtsLayer = await loadWmtsLayer(geodataWmtsLayer);
       if (wmtsLayer.source) {
         setBaseLayer(new TileLayer({ source: wmtsLayer.source }));
       }
