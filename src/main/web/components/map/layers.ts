@@ -74,3 +74,9 @@ export const politidistriktLayer = new VectorLayer({
     }),
   }),
 });
+export const populatedLayer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: "/geojson/ne_50m_populated_places_simple.geojson",
+  }),
+});

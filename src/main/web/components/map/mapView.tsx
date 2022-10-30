@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Map, MapBrowserEvent, Overlay, View } from "ol";
+import { Feature, Map, MapBrowserEvent, Overlay, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
@@ -21,7 +21,9 @@ import {
   geodataWmtsLayer,
   loadWmtsLayer,
   politidistriktLayer,
+  populatedLayer,
 } from "./layers";
+import { Polygon } from "ol/geom";
 
 useGeographic();
 proj4.defs([
@@ -36,17 +38,19 @@ function MapPopup({ children }: { children: ReactNode }) {
   return <div className={"map-popup"}>{children}</div>;
 }
 
+type PolitidistriktFeature = Feature<Polygon & { navn: string }>;
+
 export function MapView() {
   const map = useMemo(() => new Map(), []);
   const [baseLayer, setBaseLayer] = useState<Layer>(
     () => new TileLayer({ source: new OSM() })
   );
   const [selectedPolitidistrikt, setSelectedPolitidistrikt] = useState<
-    string | undefined
+    PolitidistriktFeature | undefined
   >();
 
   const layers = useMemo(
-    () => [baseLayer, countryLayer, politidistriktLayer],
+    () => [baseLayer, countryLayer, politidistriktLayer, populatedLayer],
     [baseLayer]
   );
   const projection = useMemo(
@@ -125,7 +129,7 @@ export function MapView() {
       .getSource()!
       .getFeaturesAtCoordinate(e.coordinate);
     if (features.length > 0) {
-      setSelectedPolitidistrikt(features[0].getProperties().navn);
+      setSelectedPolitidistrikt(features[0] as PolitidistriktFeature);
       overlay.setPosition(e.coordinate);
     } else {
       setSelectedPolitidistrikt(undefined);
@@ -148,23 +152,30 @@ export function MapView() {
   }, [mapRef.current, overlayRef.current]);
 
   return (
-    <main>
-      <div>
-        <label>
-          Follow me
-          <input
-            type="checkbox"
-            checked={followMe}
-            onChange={(e) => setFollowMe(e.target.checked)}
-          />
-        </label>
-      </div>
-      <div className={"map"} ref={mapRef} />
+    <>
+      <main>
+        <div>
+          <label>
+            Follow me
+            <input
+              type="checkbox"
+              checked={followMe}
+              onChange={(e) => setFollowMe(e.target.checked)}
+            />
+          </label>
+        </div>
+        <div className={"map"} ref={mapRef} />
+      </main>
+      <aside>
+        {selectedPolitidistrikt && (
+          <div>{selectedPolitidistrikt.getProperties().navn}</div>
+        )}
+      </aside>
       <div ref={overlayRef}>
         {selectedPolitidistrikt && (
-          <MapPopup>{selectedPolitidistrikt}</MapPopup>
+          <MapPopup>{selectedPolitidistrikt.getProperties().navn}</MapPopup>
         )}
       </div>
-    </main>
+    </>
   );
 }
