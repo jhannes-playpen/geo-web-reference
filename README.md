@@ -22,9 +22,9 @@
 
 1. Create Maven project
 2. Add jetty
-3. Add jetty autoloader
-4. Create npm project
-5. Add parcel + react + openlayers
+3. Create npm project
+4. Add parcel + react + openlayers
+5. Add jetty autoloader
 6. Show openlayers map with OSM
 7. Add WMTS layer from Norwegian source
 8. Import geojson layer and serve from Jetty
