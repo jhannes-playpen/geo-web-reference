@@ -78,12 +78,28 @@ const countryLayer = new VectorLayer({
   }),
 });
 
+const politidistriktLayer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: "/geojson/politidistrikter.geojson",
+  }),
+  style: new Style({
+    stroke: new Stroke({
+      color: "#2f2926",
+      width: 3,
+    }),
+  }),
+});
+
 export function MapView() {
   const [baseLayer, setBaseLayer] = useState<Layer>(
     () => new TileLayer({ source: new OSM() })
   );
 
-  const layers = useMemo(() => [baseLayer, countryLayer], [baseLayer]);
+  const layers = useMemo(
+    () => [baseLayer, countryLayer, politidistriktLayer],
+    [baseLayer]
+  );
   const projection = useMemo(
     () => baseLayer.getSource()?.getProjection(),
     [baseLayer]

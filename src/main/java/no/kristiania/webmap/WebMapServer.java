@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -22,10 +23,12 @@ public class WebMapServer {
     public WebMapServer(int port) throws IOException {
         this.server = new Server(port);
         server.setRequestLog(new CustomRequestLog());
-        server.setHandler(createWebApp());
+        var context = createWebApp();
+        context.addServlet(new ServletHolder(new GeoJsonServlet()), "/geojson/*");
+        server.setHandler(context);
     }
 
-    private Handler createWebApp() throws IOException {
+    private WebAppContext createWebApp() throws IOException {
         var context = new WebAppContext();
         context.setContextPath("/");
         var baseResource = Resource.newClassPathResource("/webapp");
