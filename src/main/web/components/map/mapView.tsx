@@ -21,6 +21,39 @@ proj4.defs([
 ]);
 register(proj4);
 
+interface WmtsLayerDefinition {
+  url: string;
+  layer: string;
+  matrixSet: string;
+}
+
+async function loadWmtsLayer({ url, layer, matrixSet }: WmtsLayerDefinition) {
+  const res = await fetch(url);
+  if (res.ok) {
+    const xml = await res.text();
+    const parser = new WMTSCapabilities();
+    const options = optionsFromCapabilities(parser.read(xml), {
+      layer,
+      matrixSet,
+    });
+    return {
+      name: options!.layer,
+      source: new WMTS(options!),
+    };
+  } else {
+    return {
+      name: layer,
+      error: "Failed to load",
+    };
+  }
+}
+
+const geodataWmtsLayer = {
+  url: "https://services.geodataonline.no/arcgis/rest/services/Geocache_UTM33_WGS84/GeocacheBasis/MapServer/WMTS/1.0.0/WMTSCapabilities.xml",
+  layer: "Geocache_UTM33_WGS84_GeocacheBasis",
+  matrixSet: "default028mm",
+};
+
 export function MapView() {
   const [followMe, setFollowMe] = useState(false);
 
@@ -59,22 +92,14 @@ export function MapView() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch(
-        "https://services.geodataonline.no/arcgis/rest/services/Geocache_UTM33_WGS84/GeocacheBasis/MapServer/WMTS/1.0.0/WMTSCapabilities.xml"
-      );
-      if (res.ok) {
-        const xml = await res.text();
-        const parser = new WMTSCapabilities();
-        const options = optionsFromCapabilities(parser.read(xml), {
-          layer: "Geocache_UTM33_WGS84_GeocacheBasis",
-          matrixSet: "default028mm",
-        });
+      const wmtsLayer = await loadWmtsLayer(geodataWmtsLayer);
+      if (wmtsLayer.source) {
         const tileLayer = new TileLayer({
-          source: new WMTS(options!),
+          source: wmtsLayer.source,
           opacity: 1,
         });
         setLayers([tileLayer]);
-        setProjection(tileLayer.getSource()!.getProjection());
+        setProjection(wmtsLayer.source.getProjection());
       }
     })();
   }, []);
