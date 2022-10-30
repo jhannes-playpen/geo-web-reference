@@ -1,19 +1,20 @@
 import * as React from "react";
 import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Map, View } from "ol";
-import { OSM, WMTS } from "ol/source";
+import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
 import { useGeographic } from "ol/proj";
 import proj4 from "proj4";
 
 import "ol/ol.css";
-import { optionsFromCapabilities } from "ol/source/WMTS";
-import { GeoJSON, WMTSCapabilities } from "ol/format";
 import { register } from "ol/proj/proj4";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
-import { Fill, Stroke, Style } from "ol/style";
+import {
+  countryLayer,
+  geodataWmtsLayer,
+  loadWmtsLayer,
+  politidistriktLayer,
+} from "./layers";
 
 useGeographic();
 proj4.defs([
@@ -23,73 +24,6 @@ proj4.defs([
   ],
 ]);
 register(proj4);
-
-interface WmtsLayerDefinition {
-  url: string;
-  layer: string;
-  matrixSet: string;
-}
-
-async function loadWmtsLayer({ url, layer, matrixSet }: WmtsLayerDefinition) {
-  const res = await fetch(url);
-  if (res.ok) {
-    const xml = await res.text();
-    const parser = new WMTSCapabilities();
-    const options = optionsFromCapabilities(parser.read(xml), {
-      layer,
-      matrixSet,
-    });
-    return {
-      name: options!.layer,
-      source: new WMTS(options!),
-    };
-  } else {
-    return {
-      name: layer,
-      error: "Failed to load",
-    };
-  }
-}
-
-const geodataWmtsLayer = {
-  url: "https://services.geodataonline.no/arcgis/rest/services/Geocache_UTM33_WGS84/GeocacheBasis/MapServer/WMTS/1.0.0/WMTSCapabilities.xml",
-  layer: "Geocache_UTM33_WGS84_GeocacheBasis",
-  matrixSet: "default028mm",
-};
-const geodataPhotoLayer = {
-  url: "https://services.geodataonline.no/arcgis/rest/services/Geocache_UTM33_WGS84/GeocacheBilder/MapServer/WMTS/1.0.0/WMTSCapabilities.xml",
-  layer: "Geocache_UTM33_WGS84_GeocacheBilder",
-  matrixSet: "default028mm",
-};
-
-const countryLayer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_0_sovereignty.geojson",
-  }),
-  style: new Style({
-    stroke: new Stroke({
-      color: "red",
-      width: 2,
-    }),
-    fill: new Fill({
-      color: "rgba(255, 255, 255, 0)",
-    }),
-  }),
-});
-
-const politidistriktLayer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: "/geojson/politidistrikter.geojson",
-  }),
-  style: new Style({
-    stroke: new Stroke({
-      color: "#2f2926",
-      width: 3,
-    }),
-  }),
-});
 
 export function MapView() {
   const [baseLayer, setBaseLayer] = useState<Layer>(
