@@ -16,3 +16,20 @@
 * [ ] Use web sockets and offline storage to interact with "resources", "incidents" and "points-of-interest"
 * [ ] Use offline storage to cache WMTS layers
 * [ ] Multiple projections (one per WMTS layer)
+
+
+## Plan of attack
+
+1. Create Maven project
+2. Add jetty
+3. Add jetty autoloader
+4. Create npm project
+5. Add parcel + react + openlayers
+6. Show openlayers map with OSM
+7. Add WMTS layer from Norwegian source
+8. Import geojson layer and serve from Jetty
+9. Overlay when geojson layer clicked
+10. Info-display when overlay is clicked
+11. Clickaway overlay on other interaction
+
+## TODO: Experiment with overlays
