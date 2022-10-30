@@ -6,6 +6,8 @@ import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
 import { useGeographic } from "ol/proj";
 
+import "ol/ol.css";
+
 useGeographic();
 
 export function MapView() {
