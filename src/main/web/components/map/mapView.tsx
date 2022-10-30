@@ -1,6 +1,6 @@
 import * as React from "react";
 import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
-import { Map, View } from "ol";
+import { Map, MapBrowserEvent, Overlay, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Layer } from "ol/layer";
@@ -26,9 +26,13 @@ proj4.defs([
 register(proj4);
 
 export function MapView() {
+  const map = useMemo(() => new Map(), []);
   const [baseLayer, setBaseLayer] = useState<Layer>(
     () => new TileLayer({ source: new OSM() })
   );
+  const [selectedPolitidistrikt, setSelectedPolitidistrikt] = useState<
+    string | undefined
+  >();
 
   const layers = useMemo(
     () => [baseLayer, countryLayer, politidistriktLayer],
@@ -75,8 +79,12 @@ export function MapView() {
       }
     })();
   }, []);
+  useEffect(() => map.setLayers(layers), [layers]);
+  useEffect(() => map.setView(view), [view]);
 
   const mapRef = useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
+  const overlayRef =
+    useRef<HTMLDivElement>() as MutableRefObject<HTMLDivElement>;
 
   function handleMoveEnd() {
     const viewport = {
@@ -87,15 +95,46 @@ export function MapView() {
     sessionStorage.setItem("viewport", JSON.stringify(viewport));
     setFollowMe(false);
   }
+
+  const overlay = useMemo(() => {
+    return new Overlay({
+      element: overlayRef.current,
+    });
+  }, [overlayRef.current]);
   useEffect(() => {
-    if (!mapRef.current) {
+    if (!overlay.getElement()) {
+      return () => {};
+    }
+    map.addOverlay(overlay);
+    return () => map.removeOverlay(overlay);
+  }, [overlay]);
+
+  function handlePolitidistriktClick(e: MapBrowserEvent<MouseEvent>) {
+    const features = politidistriktLayer
+      .getSource()!
+      .getFeaturesAtCoordinate(e.coordinate);
+    if (features.length > 0) {
+      setSelectedPolitidistrikt(features[0].getProperties().navn);
+      overlay.setPosition(e.coordinate);
+    } else {
+      setSelectedPolitidistrikt(undefined);
+      overlay.setPosition(undefined);
+    }
+  }
+
+  useEffect(() => {
+    if (!mapRef.current || !overlayRef.current) {
       return;
     }
-    const target = mapRef.current;
-    const map = new Map({ layers, target, view });
+    map.setTarget(mapRef.current);
     map.on("moveend", handleMoveEnd);
-    return () => map.setTarget(undefined);
-  }, [mapRef.current]);
+    map.on("click", handlePolitidistriktClick);
+    return () => {
+      map.setTarget(undefined);
+      map.un("moveend", handleMoveEnd);
+      map.un("click", handlePolitidistriktClick);
+    };
+  }, [mapRef.current, overlayRef.current]);
 
   return (
     <main>
@@ -110,6 +149,9 @@ export function MapView() {
         </label>
       </div>
       <div className={"map"} ref={mapRef} />
+      <div ref={overlayRef}>
+        {selectedPolitidistrikt && <div>HEIHEI: {selectedPolitidistrikt}</div>}
+      </div>
     </main>
   );
 }
