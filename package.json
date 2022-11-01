@@ -4,7 +4,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel watch src/main/web/index.html --dist-dir src/main/resources/webapp",
-    "build": "tsc"
+    "build": "parcel build src/main/web/index.html --no-cache --dist-dir src/main/resources/webapp"
   },
   "author": "",
   "license": "ISC",

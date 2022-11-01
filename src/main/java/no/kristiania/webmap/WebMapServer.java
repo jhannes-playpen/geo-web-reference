@@ -43,11 +43,10 @@ public class WebMapServer {
     }
 
     private Resource getSourceResource(Resource baseResource) throws IOException {
-        var baseDir = baseResource.getFile();
-        if (baseDir == null) {
+        if (baseResource == null || baseResource.getFile() == null) {
             return null;
         }
-        var sourceDir = new File(baseDir.toString()
+        var sourceDir = new File(baseResource.getFile().toString()
                 .replace('\\', '/')
                 .replace("target/classes", "src/main/resources"));
         if (sourceDir.isDirectory()) {
