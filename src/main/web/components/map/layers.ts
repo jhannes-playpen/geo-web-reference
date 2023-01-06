@@ -46,7 +46,7 @@ const geodataPhotoLayer = {
   layer: "Geocache_UTM33_WGS84_GeocacheBilder",
   matrixSet: "default028mm",
 };
-export const countryLayer = new VectorLayer({
+export const countryLayer: VectorLayer<VectorSource> = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
     url: "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_0_sovereignty.geojson",

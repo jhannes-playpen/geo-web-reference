@@ -2,10 +2,10 @@
 
 ## Goals
 
-* [ ] Display OSM and custom WMTS map layers on OpenLayers map
-* [ ] Import GeoJSON layer from public source and display regional boundaries
-* [ ] Interact with vector objects on the map
-* [ ] Display "resources" dots from separate source on map (wfs layers)
+* [x] Display OSM and custom WMTS map layers on OpenLayers map
+* [x] Import GeoJSON layer from public source and display regional boundaries
+* [x] Interact with vector objects on the map
+* [x] Display "resources" dots from separate source on map (wfs layers)
 * [ ] Add "incident" dots on map through UI (e.g. "delivery order")
 * [ ] Interact with "incidents"
 * [ ] Add "point-of-interest" per "incident" (e.g. "pickup", e.g. "drop-off")

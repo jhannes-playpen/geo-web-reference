@@ -25,6 +25,11 @@ import {
 } from "./layers";
 import { Point, Polygon } from "ol/geom";
 import { buffer } from "ol/extent";
+import { FloatingActionButton, Incident } from "../fab";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import { Fill, Style } from "ol/style";
+import CircleStyle from "ol/style/Circle";
 
 useGeographic();
 proj4.defs([
@@ -39,7 +44,16 @@ function MapPopup({ children }: { children: ReactNode }) {
   return <div className={"map-popup"}>{children}</div>;
 }
 
-type PolitidistriktFeature = Feature<Polygon & { navn: string }>;
+type PolitidistriktFeature = Feature<Polygon>;
+
+function useLocalStorage<T>(key: string, initial: T) {
+  const [value, setValue] = useState();
+  return [value, setValue];
+}
+
+function useIncidents() {
+  return useLocalStorage<Incident[]>("incidents", []);
+}
 
 export function MapView() {
   const map = useMemo(() => new Map(), []);
@@ -52,9 +66,39 @@ export function MapView() {
   const [selectedCity, setSelectedCity] = useState<
     Feature<Point & unknown> | undefined
   >();
+  const incidents = JSON.parse(
+    localStorage.getItem("incidents") || "[]"
+  ) as Incident[];
+  const incidentLayer = useMemo(
+    () =>
+      new VectorLayer({
+        source: new VectorSource({
+          features: incidents.map(
+            (f) =>
+              new Feature({
+                geometry: new Point(f.position),
+                label: f.label,
+              })
+          ),
+        }),
+        style: new Style({
+          image: new CircleStyle({
+            radius: 5,
+            fill: new Fill({ color: "red" }),
+          }),
+        }),
+      }),
+    []
+  );
 
   const layers = useMemo(
-    () => [baseLayer, countryLayer, politidistriktLayer, populatedLayer],
+    () => [
+      baseLayer,
+      countryLayer,
+      politidistriktLayer,
+      populatedLayer,
+      incidentLayer,
+    ],
     [baseLayer]
   );
   const projection = useMemo(
@@ -198,7 +242,9 @@ export function MapView() {
             />
           </label>
         </div>
-        <div className={"map"} ref={mapRef} />
+        <div className={"map"} ref={mapRef}>
+          <FloatingActionButton map={map} />
+        </div>
       </main>
       <aside>
         {selectedPolitidistrikt && (

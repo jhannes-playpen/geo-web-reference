@@ -5,7 +5,7 @@ export function Application() {
   return (
     <div>
       <header>
-        <h1>Hello React Application</h1>
+        <h1>Map Application</h1>
       </header>
       <MapView />
     </div>
